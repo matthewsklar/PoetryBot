@@ -5,6 +5,7 @@
 var theme = "";
 var rhymeScheme = [];
 var syllableScheme = [];
+var previousWord = "";
 
 $(document).ready(function() {
     $("#test").click(function() {
@@ -17,8 +18,10 @@ $(document).ready(function() {
  */
 function createPoem() {
     theme = generateTheme();
+
     generateRhymeScheme(1);
     generateSyllableScheme(1);
+    generateLines();
 }
 
 /**
@@ -75,8 +78,9 @@ function generateLines() {
         while (syllablesLeft > 0) {
             // TODO: finish
             $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&rel_bga=" + previousWord, function(data) {
-
+                console.log(JSON.stringify(data));
             });
+            syllablesLeft--;
         }
     }
 }
