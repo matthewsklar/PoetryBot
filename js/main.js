@@ -6,9 +6,11 @@ var theme = "";
 var rhymeScheme = [];
 var syllableScheme = [];
 var previousWord = "";
+var output = "";
 
 $(document).ready(function() {
     $("#test").click(function() {
+        output = "";
         createPoem();
     });
 });
@@ -64,25 +66,26 @@ function generateSyllableScheme(type) {
 }
 
 function generateLines() {
-    output = "";
     previousWord = "The";
 
     output += previousWord;
 
-    for (i = 0; i < rhymeScheme.length; i++) {
-        syllables = 0;
-        if (output == previousWord) syllables += syllableCount(previousWord);
+    generateWords();
+}
 
-        syllablesLeft = syllableScheme[i] - syllables;
+function generateWords() {
+    $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function(data) {
+        var index = Math.floor(Math.random() * 10);
 
-        while (syllablesLeft > 0) {
-            // TODO: finish
-            $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&rel_bga=" + previousWord, function(data) {
-                console.log(JSON.stringify(data));
-            });
-            syllablesLeft--;
+        while (data[index].word == '.') {
+            index = Math.floor(Math.random() * 10);
         }
-    }
+
+        previousWord = data[index].word;
+
+        console.log(previousWord);
+        generateWords();
+    });
 }
 
 function syllableCount(word) {
