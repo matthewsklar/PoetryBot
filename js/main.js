@@ -7,6 +7,9 @@ var rhymeScheme = [];
 var syllableScheme = [];
 var previousWord = "";
 var output = "";
+var syllablesOnLine = 0;
+var line = 0;
+var rhymes = [];
 
 $(document).ready(function() {
     $("#test").click(function() {
@@ -67,25 +70,65 @@ function generateSyllableScheme(type) {
 
 function generateLines() {
     previousWord = "The";
-
     output += previousWord;
 
     generateWords();
 }
 
 function generateWords() {
-    $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function(data) {
-        var index = Math.floor(Math.random() * 10);
+    if (line < 5) {
+        if (syllableScheme[line] - syllablesOnLine > 3) {
+            $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
+                var index = Math.floor(Math.random() * 10);
 
-        while (data[index].word == '.') {
-            index = Math.floor(Math.random() * 10);
+                while (data[index].word == '.') {
+                    index = Math.floor(Math.random() * 10);
+                }
+
+                previousWord = data[index].word;
+
+                syllablesOnLine += syllableCount(previousWord);
+
+                output += " " + previousWord;
+                generateWords();
+            });
+        } else {
+            console.log(rhymeScheme[line]);
+            if (rhymes.length > rhymeScheme[line]) {
+                console.log(rhymes[rhymeScheme[line]]);
+                $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]], function (data) {
+                    console.log("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]]);
+                    var index = Math.floor(Math.random() * 5);
+
+                    while (data[index].word == '.') {
+                        index = Math.floor(Math.random() * 5);
+                    }
+
+                    previousWord = data[index].word;
+                    output += " " + previousWord + "\n";
+                    //console.log(previousWord);
+                    console.log(output);
+                });
+            } else {
+                $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
+                    var index = Math.floor(Math.random() * 10);
+
+                    while (data[index].word == '.') {
+                        index = Math.floor(Math.random() * 10);
+                    }
+
+                    previousWord = data[index].word;
+                    rhymes[rhymeScheme[line]] = previousWord;
+                    output += " " + previousWord + "\n";
+                });
+            }
+            console.log(output); syllablesOnLine = 0;
+            line++;
+            generateWords();
         }
-
-        previousWord = data[index].word;
-
-        console.log(previousWord);
-        generateWords();
-    });
+    } else {
+        line = 0;
+    }
 }
 
 function syllableCount(word) {
