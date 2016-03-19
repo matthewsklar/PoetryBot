@@ -14,6 +14,7 @@ var rhymes = [];
 $(document).ready(function() {
     $("#test").click(function() {
         output = "";
+        line = 0;
         createPoem();
     });
 });
@@ -93,11 +94,8 @@ function generateWords() {
                 generateWords();
             });
         } else {
-            console.log(rhymeScheme[line]);
             if (rhymes.length > rhymeScheme[line]) {
-                console.log(rhymes[rhymeScheme[line]]);
                 $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]], function (data) {
-                    console.log("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]]);
                     var index = Math.floor(Math.random() * 5);
 
                     while (data[index].word == '.') {
@@ -106,8 +104,7 @@ function generateWords() {
 
                     previousWord = data[index].word;
                     output += " " + previousWord + "\n";
-                    //console.log(previousWord);
-                    console.log(output);
+                    if (line == rhymeScheme.length) document.getElementById("poem").textContent = output;
                 });
             } else {
                 $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
@@ -122,12 +119,11 @@ function generateWords() {
                     output += " " + previousWord + "\n";
                 });
             }
-            console.log(output); syllablesOnLine = 0;
+
+            syllablesOnLine = 0;
             line++;
             generateWords();
         }
-    } else {
-        line = 0;
     }
 }
 
