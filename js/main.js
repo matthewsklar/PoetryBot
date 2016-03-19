@@ -15,6 +15,11 @@ $(document).ready(function() {
     $("#test").click(function() {
         output = "";
         line = 0;
+        rhymeScheme = [];
+        syllableScheme = [];
+        syllablesOnLine = 0;
+        rhymes = [];
+        previousWord = "";
         createPoem();
     });
 });
