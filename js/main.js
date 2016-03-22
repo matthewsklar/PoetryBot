@@ -10,6 +10,10 @@ var output = "";
 var syllablesOnLine = 0;
 var line = 0;
 var rhymes = [];
+var currentLine = "";
+
+var themes = [ "death", "ocean", "sea", "science", "unknown", "sloth", "love", "family", "life", "hope", "nature", "tree", "god", "sex", "kumbaya" ];
+var whitelist = [ "ca", ".", "le" ];
 
 $(document).ready(function() {
     $("#test").click(function() {
@@ -39,7 +43,9 @@ function createPoem() {
  * Generate the theme of the poem
  */
 function generateTheme() {
-    return "sea";
+    var random = Math.floor(Math.random() * themes.length);
+    console.log(themes[random]);
+    return themes[random];
 }
 
 /**
@@ -84,44 +90,106 @@ function generateLines() {
 function generateWords() {
     if (line < 5) {
         if (syllableScheme[line] - syllablesOnLine > 3) {
+            console.log("word: https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
             $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
-                var index = Math.floor(Math.random() * 10);
+                var possibleWordIndexes = [];
 
-                while (data[index].word == '.') {
-                    index = Math.floor(Math.random() * 10);
+                if (data.length < 7) {
+                    for (var i = 0; i < data.length; i++) possibleWordIndexes[i] = i;
+                } else {
+                    for (var i = 0; i < data.length; i++) {
+                        if (possibleWordIndexes.length < 7) {
+                            var word = data[i].word;
+
+                            if (checkWhitelist(word)) {
+                                possibleWordIndexes[possibleWordIndexes.length] = i;
+                            }
+                        }
+                    }
                 }
 
-                previousWord = data[index].word;
+                if (possibleWordIndexes.length != 0) {
+                    var index = possibleWordIndexes[Math.floor(Math.random() * possibleWordIndexes.length)];
 
-                syllablesOnLine += syllableCount(previousWord);
+                    previousWord = data[index].word;
 
-                output += " " + previousWord;
+                    syllablesOnLine += syllableCount(previousWord);
+                    currentLine += " " + previousWord;
+                } else {
+                    currentLine = "";
+                }
+
                 generateWords();
             });
         } else {
             if (rhymes.length > rhymeScheme[line]) {
+                console.log("line: " + line + " https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]]);
                 $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]], function (data) {
-                    var index = Math.floor(Math.random() * 5);
+                    var possibleWordIndexes = [];
+                    var canEnd = true;
 
-                    while (data[index].word == '.') {
-                        index = Math.floor(Math.random() * 5);
+                    if (data.length < 7) {
+                        for (var i = 0; i < data.length; i++) possibleWordIndexes[i] = i;
+                    } else {
+                        for (var i = 0; i < data.length; i++) {
+                            if (possibleWordIndexes.length < 7) {
+                                var word = data[i].word;
+
+                                if (checkWhitelist(word)) {
+                                    possibleWordIndexes[possibleWordIndexes.length] = i;
+                                }
+                            }
+                        }
                     }
 
-                    previousWord = data[index].word;
-                    output += " " + previousWord + "\n";
-                    if (line == rhymeScheme.length) document.getElementById("poem").textContent = output;
+                    if (possibleWordIndexes.length != 0) {
+                        var index = possibleWordIndexes[Math.floor(Math.random() * possibleWordIndexes.length)];
+
+                        previousWord = data[index].word;
+                        currentLine += " " + previousWord;
+                    } else {
+                        currentLine = "";
+                        canEnd = false;
+                        // TODO: fix
+                        //line--;
+                    }
+
+                    output += currentLine + "\n";
+                    if (line == rhymeScheme.length && canEnd) document.getElementById("poem").textContent = output;
+                    currentLine = "";
                 });
             } else {
+                console.log("line: " + line + " https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
                 $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
-                    var index = Math.floor(Math.random() * 10);
+                    var possibleWordIndexes = [];
 
-                    while (data[index].word == '.') {
-                        index = Math.floor(Math.random() * 10);
+                    if (data.length < 7) {
+                        for (var i = 0; i < data.length; i++) possibleWordIndexes[i] = i;
+                    } else {
+                        for (var i = 0; i < data.length; i++) {
+                            if (possibleWordIndexes.length < 7) {
+                                var word = data[i].word;
+
+                                if (checkWhitelist(word)) {
+                                    possibleWordIndexes[possibleWordIndexes.length] = i;
+                                }
+                            }
+                        }
                     }
 
-                    previousWord = data[index].word;
-                    rhymes[rhymeScheme[line]] = previousWord;
-                    output += " " + previousWord + "\n";
+                    if (possibleWordIndexes.length != 0) {
+                        var index = possibleWordIndexes[Math.floor(Math.random() * possibleWordIndexes.length)];
+
+                        previousWord = data[index].word;
+                        rhymes[rhymeScheme[line]] = previousWord;
+                        currentLine += " " + previousWord;
+                    } else {
+                        currentLine = "";
+                        //line--;
+                    }
+
+                    output += currentLine + "\n";
+                    currentLine = "";
                 });
             }
 
@@ -130,6 +198,14 @@ function generateWords() {
             generateWords();
         }
     }
+}
+
+function checkWhitelist(word) {
+    for (i = 0; i < whitelist.length; i++) {
+        if (whitelist[i] == word) return false;
+    }
+
+    return true;
 }
 
 function syllableCount(word) {
