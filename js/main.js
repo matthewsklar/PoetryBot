@@ -12,8 +12,8 @@ var line = 0;
 var rhymes = [];
 var currentLine = "";
 
-var themes = [ "death", "ocean", "sea", "science", "unknown", "sloth", "love", "family", "life", "hope", "nature", "tree", "god", "sex", "kumbaya" ];
-var whitelist = [ "ca", ".", "le" ];
+var themes = [ "death", "ocean", "sea", "science", "unknown", "sloth", "love", "family", "life", "hope", "nature", "tree", "god", "kumbaya" ];
+var blacklist = [ "speechifying", "huh", "siddhartha", "uh", "biz", "riz", "whiz", "bloviation", " churchy", "polyannaish", "noobz", "shema", "ca", ".", "le", "pshaw", "duh", "dah", "pizzazz", "wussy", "speechify", "verklempt", "niner"];
 
 $(document).ready(function() {
     $("#limerick").click(function() {
@@ -103,10 +103,13 @@ function generateSyllableScheme(type) {
 }
 
 function generateLines() {
-    previousWord = "The";
-    output += previousWord;
+    $.getJSON("http://api.wordnik.com:80/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=5&maxLength=15&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5", function(data) {
+        previousWord = data[0].word;
+        console.log("Starting word: " + previousWord);
+        output += previousWord;
 
-    generateWords();
+        generateWords();
+    });
 }
 
 function generateWords() {
@@ -123,7 +126,7 @@ function generateWords() {
                         if (possibleWordIndexes.length < 7) {
                             var word = data[i].word;
 
-                            if (checkWhitelist(word)) {
+                            if (checkBlacklist(word)) {
                                 possibleWordIndexes[possibleWordIndexes.length] = i;
                             }
                         }
@@ -157,7 +160,7 @@ function generateWords() {
                             if (possibleWordIndexes.length < 7) {
                                 var word = data[i].word;
 
-                                if (checkWhitelist(word)) {
+                                if (checkBlacklist(word)) {
                                     possibleWordIndexes[possibleWordIndexes.length] = i;
                                 }
                             }
@@ -192,7 +195,7 @@ function generateWords() {
                             if (possibleWordIndexes.length < 7) {
                                 var word = data[i].word;
 
-                                if (checkWhitelist(word)) {
+                                if (checkBlacklist(word)) {
                                     possibleWordIndexes[possibleWordIndexes.length] = i;
                                 }
                             }
@@ -223,9 +226,9 @@ function generateWords() {
     }
 }
 
-function checkWhitelist(word) {
-    for (i = 0; i < whitelist.length; i++) {
-        if (whitelist[i] == word) return false;
+function checkBlacklist(word) {
+    for (i = 0; i < blacklist.length; i++) {
+        if (blacklist[i] == word) return false;
     }
 
     return true;
