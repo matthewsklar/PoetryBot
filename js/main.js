@@ -11,6 +11,7 @@ var syllablesOnLine = 0;
 var line = 0;
 var rhymes = [];
 var currentLine = "";
+var syllsLeft = 0;
 
 var themes = [ "death", "ocean", "sea", "science", "unknown", "sloth", "love", "family", "life", "hope", "nature", "tree", "god", "sex", "kumbaya" ];
 var blacklist = [ "ca", ".", "le", "pshaw", "duh", "dah", "pizzazz", "wussy", "speechify", "verklempt", "niner" ];
@@ -60,6 +61,9 @@ function generateRhymeScheme(type) {
         case 1: //limerick
             rhymeScheme = [ 0, 0, 1, 1, 0 ];
             break;
+        case 2: //haiku
+            rhymeScheme = [ 0, 1, 2 ];
+            break;
         default:
             break;
     }
@@ -74,6 +78,9 @@ function generateSyllableScheme(type) {
             second = Math.floor(Math.random() * 2) + 5;
 
             syllableScheme = [ first, first, second, second, first ];
+            break;
+        case 2:
+            syllableScheme = [ 5, 7, 5 ];
             break;
         default:
             break;
@@ -91,7 +98,7 @@ function generateLines() {
 }
 
 function generateWords() {
-    if (line < 5) {
+    if (line < rhymeScheme.length) {
         if (syllableScheme[line] - syllablesOnLine > 3) {
             console.log("word: https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
             $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
@@ -122,6 +129,8 @@ function generateWords() {
                     currentLine = "";
                 }
 
+
+                syllsLeft = syllableScheme[line] - syllablesOnLine;
                 generateWords();
             });
         } else {
@@ -131,15 +140,26 @@ function generateWords() {
                     var possibleWordIndexes = [];
                     var canEnd = true;
 
-                    if (data.length < 7) {
-                        for (var i = 0; i < data.length; i++) possibleWordIndexes[i] = i;
+                    var correctSylCountIndexes = [];
+
+                    for (var i = 0; i < data.length; i++) {
+                        console.log(data[i].numSyllables == syllsLeft);
+                        if (data[i].numSyllables == syllsLeft) {
+                            correctSylCountIndexes[correctSylCountIndexes.length] = i;
+                        }
+                    }
+
+                    if (correctSylCountIndexes.length < 7) {
+                        for (var i = 0; i < correctSylCountIndexes.length; i++) possibleWordIndexes[i] = correctSylCountIndexes[i];
                     } else {
-                        for (var i = 0; i < data.length; i++) {
+                        for (var i = 0; i < correctSylCountIndexes.length; i++) {
                             if (possibleWordIndexes.length < 7) {
-                                var word = data[i].word;
+                                var index = correctSylCountIndexes[i];
+
+                                var word = data[index].word;
 
                                 if (checkBlacklist(word)) {
-                                    possibleWordIndexes[possibleWordIndexes.length] = i;
+                                    possibleWordIndexes[possibleWordIndexes.length] = correctSylCountIndexes[i];
                                 }
                             }
                         }
@@ -158,8 +178,10 @@ function generateWords() {
                     }
 
                     output += currentLine + "\n";
+                    console.log("rhyme: " + currentLine);
                     if (line == rhymeScheme.length && canEnd) document.getElementById("poem").textContent = output;
                     currentLine = "";
+                    console.log("end");
                 });
             } else {
                 console.log("line: " + line + " https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
@@ -190,12 +212,14 @@ function generateWords() {
                         currentLine = "";
                         //line--;
                     }
+                    console.log("start rhyme: " + currentLine);
 
                     output += currentLine + "\n";
                     currentLine = "";
+                    console.log("end2");
                 });
             }
-
+            console.log("realend");
             syllablesOnLine = 0;
             line++;
             generateWords();
