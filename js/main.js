@@ -11,13 +11,12 @@ var syllablesOnLine = 0;
 var line = 0;
 var rhymes = [];
 var currentLine = "";
-var type = 2; // 0 = free verse, 1 = limerick; 2 = haiku
 
 var themes = [ "death", "ocean", "sea", "science", "unknown", "sloth", "love", "family", "life", "hope", "nature", "tree", "god", "sex", "kumbaya" ];
 var whitelist = [ "ca", ".", "le" ];
 
 $(document).ready(function() {
-    $("#test").click(function() {
+    $("#limerick").click(function() {
         output = "";
         line = 0;
         rhymeScheme = [];
@@ -25,14 +24,30 @@ $(document).ready(function() {
         syllablesOnLine = 0;
         rhymes = [];
         previousWord = "";
-        createPoem();
+        createPoem(1);
     });
 });
+
+
+$(document).ready(function() {
+    $("#haiku").click(function() {
+        output = "";
+        line = 0;
+        rhymeScheme = [];
+        syllableScheme = [];
+        syllablesOnLine = 0;
+        rhymes = [];
+        previousWord = "";
+        createPoem(2);
+    });
+});
+
+
 
 /**
  * Manage the creation of a poem
  */
-function createPoem() {
+function createPoem(type) {
     theme = generateTheme();
 
     generateRhymeScheme(type);
