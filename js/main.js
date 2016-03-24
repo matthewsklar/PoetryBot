@@ -11,6 +11,7 @@ var syllablesOnLine = 0;
 var line = 0;
 var rhymes = [];
 var currentLine = "";
+var type = 2; // 0 = free verse, 1 = limerick; 2 = haiku
 
 var themes = [ "death", "ocean", "sea", "science", "unknown", "sloth", "love", "family", "life", "hope", "nature", "tree", "god", "sex", "kumbaya" ];
 var whitelist = [ "ca", ".", "le" ];
@@ -34,8 +35,8 @@ $(document).ready(function() {
 function createPoem() {
     theme = generateTheme();
 
-    generateRhymeScheme(1);
-    generateSyllableScheme(1);
+    generateRhymeScheme(type);
+    generateSyllableScheme(type);
     generateLines();
 }
 
@@ -60,6 +61,9 @@ function generateRhymeScheme(type) {
         case 1: //limerick
             rhymeScheme = [ 0, 0, 1, 1, 0 ];
             break;
+        case 2: //haiku
+            rhymeScheme = [0, 1, 2];
+            break;
         default:
             break;
     }
@@ -75,6 +79,9 @@ function generateSyllableScheme(type) {
 
             syllableScheme = [ first, first, second, second, first ];
             break;
+        case 2:
+            syllableScheme = [5, 7, 5];
+            break;
         default:
             break;
     }
@@ -88,7 +95,7 @@ function generateLines() {
 }
 
 function generateWords() {
-    if (line < 5) {
+    if (line < rhymeScheme.length) {
         if (syllableScheme[line] - syllablesOnLine > 3) {
             console.log("word: https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
             $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
@@ -159,7 +166,7 @@ function generateWords() {
                     currentLine = "";
                 });
             } else {
-                console.log("line: " + line + " https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
+                console.log("line: " + line + "https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
                 $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
                     var possibleWordIndexes = [];
 
@@ -190,6 +197,7 @@ function generateWords() {
 
                     output += currentLine + "\n";
                     currentLine = "";
+                    generateWords();
                 });
             }
 
