@@ -14,8 +14,9 @@ var currentLine = "";
 var syllablesLeft = 0;
 var wordsPerRoulette = 10;
 var attempts = 0;
-var attemptsBeforeRestart = 10;
+var attemptsBeforeRestart = 3;
 var startingWord = "";
+var type = 1;
 
 var themes = [
     "death", "ocean", "sea", "science", "unknown", "sloth", "love",
@@ -25,21 +26,25 @@ var blacklist = [
     "ca", ".", "le", "pshaw", "duh", "dah", "pizzazz", "wussy", "speechify", "verklempt", "niner",
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
 ];
-
 var errorBlackList = [
-    "kinsperson"
+    "kinsperson", "olympiads", "seafloor", "tommyrot",
 ];
 
 $(document).ready(function() {
-    $("#test").click(function() {
-        createPoem();
+    $("#limerick").click(function() {
+        createPoem(1);
+    });
+    $("#haiku").click(function() {
+        createPoem(2);
     });
 });
 
 /**
  * Manage the creation of a poem
+ *
+ * @param poemType type of poem
  */
-function createPoem() {
+function createPoem(poemType) {
     output = "";
     line = 0;
     rhymeScheme = [];
@@ -49,8 +54,10 @@ function createPoem() {
     previousWord = "";
     theme = generateTheme();
 
-    generateRhymeScheme(1);
-    generateSyllableScheme(1);
+    type = poemType;
+
+    generateRhymeScheme(type);
+    generateSyllableScheme(type);
     generateLines();
 }
 
@@ -83,6 +90,11 @@ function generateRhymeScheme(type) {
     }
 }
 
+/**
+ * Generate the syllable scheme of the poem
+ *
+ * @param type type of poem
+ */
 function generateSyllableScheme(type) {
     switch (type) {
         case 0:
@@ -101,19 +113,28 @@ function generateSyllableScheme(type) {
     }
 }
 
+/**
+ * Generate the poem
+ */
 function generateLines() {
-    console.log("---------------------------------------------------------------------");
+    console.log("--------------------Generate Poem--------------------");
 
-    $.getJSON("http://api.wordnik.com:80/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=5&maxLength=15&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5", function(data) {
+    $.getJSON("http://api.wordnik.com:80/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=3&maxLength=15&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5", function(data) {
         previousWord = data[0].word;
         console.log("Starting word: " + previousWord);
         output += previousWord;
         startingWord = previousWord;
+        syllablesOnLine += syllableCount(previousWord);
+        console.log("word: '" + previousWord + "' syllables: " + syllableCount(previousWord));
         console.log(syllableScheme);
+        syllablesLeft = syllableScheme[line] - syllablesOnLine;
         generateWords();
     });
 }
 
+/**
+ * Generate the words in the poem
+ */
 function generateWords() {
     if (line < rhymeScheme.length) {
         if (syllableScheme[line] - syllablesOnLine > 3) {
@@ -155,8 +176,8 @@ function generateWords() {
                     }
                 }
 
-
                 syllablesLeft = syllableScheme[line] - syllablesOnLine;
+
                 generateWords();
             });
         } else {
@@ -182,12 +203,7 @@ function generateWords() {
                         }
                     }
 
-                    console.log(currentLine);
-                    if (line == rhymeScheme.length - 1) document.getElementById("poem").textContent = output;
-                    currentLine = "";
-                    syllablesOnLine = 0;
-                    line++;
-                    generateWords();
+                    handleLastWordResults();
                 });
             } else {
                 console.log("line: " + line + " https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
@@ -210,16 +226,10 @@ function generateWords() {
                             return;
                         }
                     }
-                    console.log(currentLine);
 
-                    currentLine = "";
-                    syllablesOnLine = 0;
-                    console.log("after: " + syllablesOnLine);
-                    line++;
-                    generateWords();
+                    handleLastWordResults();
                 });
             }
-
         }
     }
 }
@@ -262,9 +272,9 @@ function checkSpaces(word) {
  * Restart the poem
  */
 function restartPoem() {
-    console.log("Restarting poem");
+    console.log("--------------------Restart Poem--------------------");
 
-    createPoem();
+    createPoem(type);
 }
 
 /**
@@ -280,6 +290,7 @@ function endWordRouletteSelection(data) {
         if (rouletteWordIndexes.length < wordsPerRoulette) {
             var word = data[i].word;
             var syllables = syllableCount(word);
+
             if (syllables != -1 && syllables == syllablesLeft && legalWord(word)) {
                 rouletteWordIndexes[rouletteWordIndexes.length] = i;
             }
@@ -297,15 +308,34 @@ function endWordRouletteSelection(data) {
  */
 function addLastWord(data, rouletteWordIndexes) {
     var index = rouletteWordIndexes[Math.floor(Math.random() * rouletteWordIndexes.length)];
+    var syllables = syllableCount(previousWord);
 
     previousWord = data[index].word;
     currentLine += " " + previousWord;
     syllablesOnLine += syllableCount(previousWord);
+    console.log("word: '" + previousWord + "' index: " + index + " syllables: " + syllables);
     console.log("line " + line + " syllables: " + syllablesOnLine);
-    output += currentLine + "\n";
+    output += currentLine + "</br>";
     attempts = 0;
 }
 
+/**
+ * Create line with generated words
+ * and submit poem if it ends
+ */
+function handleLastWordResults() {
+    console.log("line " + line + ": " + currentLine);
+
+    if (line == rhymeScheme.length - 1) document.getElementById("poem").innerHTML = output;
+
+    currentLine = "";
+    syllablesOnLine = 0;
+    line++;
+
+    generateWords();
+}
+
+// TODO: Fix
 /**
  * Find the amount of syllables in a word
  *
