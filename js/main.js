@@ -122,7 +122,7 @@ function generateLines() {
     $.getJSON("http://api.wordnik.com:80/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=3&maxLength=15&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5", function(data) {
         previousWord = data[0].word;
         console.log("Starting word: " + previousWord);
-        output += previousWord;
+        currentLine += " " + previousWord;
         startingWord = previousWord;
         syllablesOnLine += syllableCount(previousWord);
         console.log("word: '" + previousWord + "' syllables: " + syllableCount(previousWord));
@@ -315,7 +315,7 @@ function addLastWord(data, rouletteWordIndexes) {
     syllablesOnLine += syllableCount(previousWord);
     console.log("word: '" + previousWord + "' index: " + index + " syllables: " + syllables);
     console.log("line " + line + " syllables: " + syllablesOnLine);
-    output += currentLine + "</br>";
+    output += currentLine.charAt(1).toUpperCase() + currentLine.slice(2) + "</br>";
     attempts = 0;
 }
 
