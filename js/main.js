@@ -5,6 +5,7 @@
 var theme = "";
 var rhymeScheme = [];
 var syllableScheme = [];
+var stanzaScheme = [];
 var previousWord = "";
 var output = "";
 var syllablesOnLine = 0;
@@ -17,6 +18,10 @@ var attempts = 0;
 var attemptsBeforeRestart = 3;
 var startingWord = "";
 var type = 1;
+var currentStanza = 0;
+var linesInCurrentStanza = 0;
+
+var usedRhymeWords = [];
 
 var themes = [
     "death", "ocean", "sea", "science", "unknown", "sloth", "love",
@@ -37,6 +42,9 @@ $(document).ready(function() {
     $("#haiku").click(function() {
         createPoem(2);
     });
+    $("#sonnet").click(function () {
+        createPoem(3);
+    })
 });
 
 /**
@@ -53,11 +61,13 @@ function createPoem(poemType) {
     rhymes = [];
     previousWord = "";
     theme = generateTheme();
-
+    currentStanza = 0;
+    linesInCurrentStanza = 0;
     type = poemType;
 
     generateRhymeScheme(type);
     generateSyllableScheme(type);
+    generateStanzaScheme(type);
     generateLines();
 }
 
@@ -85,6 +95,9 @@ function generateRhymeScheme(type) {
         case 2: //haiku
             rhymeScheme = [ 0, 1, 2 ];
             break;
+        case 3: //Sonnet
+            rhymeScheme = [ 0, 1, 0, 1, 2, 3, 2, 3, 4, 5, 4, 5, 6, 6 ];
+            break;
         default:
             break;
     }
@@ -108,6 +121,31 @@ function generateSyllableScheme(type) {
         case 2:
             syllableScheme = [ 5, 7, 5 ];
             break;
+        case 3:
+            syllableScheme = [ 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 ];
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * Generate the stanza scheme of the poem
+ *
+ * @param type type of poem
+ */
+function generateStanzaScheme(type) {
+    switch (type) {
+        case 0:
+            break;
+        case 1:
+            stanzaScheme = [];
+            break;
+        case 2:
+            stanzaScheme = [];
+            break;
+        case 3:
+            stanzaScheme = [ 4, 4, 4 ];
         default:
             break;
     }
@@ -245,6 +283,20 @@ function legalWord(word) {
 }
 
 /**
+ * Checks if the word has been used before as a rhyme
+ *
+ * @param word The word to be checked
+ * @returns {boolean} If the word has not been used before
+ */
+function legalLastWord(word) {
+    for (var i = 0; i < usedRhymeWords.length; i++) {
+        if (usedRhymeWords[i] == word) return false;
+    }
+
+    return true;
+}
+
+/**
  * Checks if the word is blacklisted
  *
  * @param word The word to be checked
@@ -291,7 +343,7 @@ function endWordRouletteSelection(data) {
             var word = data[i].word;
             var syllables = syllableCount(word);
 
-            if (syllables != -1 && syllables == syllablesLeft && legalWord(word)) {
+            if (syllables != -1 && syllables == syllablesLeft && legalWord(word) && legalLastWord(word)) {
                 rouletteWordIndexes[rouletteWordIndexes.length] = i;
             }
         }
@@ -317,6 +369,16 @@ function addLastWord(data, rouletteWordIndexes) {
     console.log("line " + line + " syllables: " + syllablesOnLine);
     output += currentLine.charAt(1).toUpperCase() + currentLine.slice(2) + "</br>";
     attempts = 0;
+
+    if (stanzaScheme[currentStanza] != null) {
+        if (stanzaScheme[currentStanza] - 1 == linesInCurrentStanza) {
+            linesInCurrentStanza = 0;
+            output += "</br>";
+            console.log("new stanza");
+        } else {
+            linesInCurrentStanza++;
+        }
+    }
 }
 
 /**
