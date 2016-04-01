@@ -54,7 +54,14 @@ $(document).ready(function() {
     $("#sonnet").click(function () {
         createPoem(3);
     })
+    $("#testalgorithm").click(function () {
+        generate();
+    })
 });
+
+function generate() {
+    document.getElementById("poem").innerHTML = "To move, to breathe, to fly, to float,</br>To gain all while you give,</br>To roam the roads of lands remote,</br>To travel is to live."
+}
 
 /**
  * Manage the creation of a poem
@@ -73,6 +80,8 @@ function createPoem(poemType) {
     currentStanza = 0;
     linesInCurrentStanza = 0;
     type = poemType;
+
+    document.getElementById("poem").innerHTML = "Amazing loading icon ---> O <--- noci gnidaol gnizamA";
 
     generateScheme(type);
     generateLines();
@@ -104,7 +113,6 @@ function generateScheme(type) {
 
                 stanzaScheme = []; // TODO: Possibly change
             }
-
             break;
         case 1: //limerick
             rhymeScheme = [ 0, 0, 1, 1, 0 ];
@@ -132,6 +140,10 @@ function generateScheme(type) {
         default:
             break;
     }
+
+    console.log("Rhyme Scheme: " + rhymeScheme);
+    console.log("Syllable Scheme: " + syllableScheme);
+    console.log("Stanza Scheme: " + stanzaScheme);
 }
 
 /**
