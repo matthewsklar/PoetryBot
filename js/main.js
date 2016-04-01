@@ -32,8 +32,14 @@ var blacklist = [
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
 ];
 var errorBlackList = [
-    "kinsperson", "olympiads", "seafloor", "tommyrot",
+    "kinsperson", "olympiads", "seafloor", "tommyrot"
 ];
+var endWordBlackList = [
+    'the', 'a', 'an', 'at', 'been', 'in', 'of', 'to', 'by', 'my',
+    'too', 'not', 'and', 'but', 'or', 'than', 'then', 'no', 'o',
+    'for', 'so', 'which', 'their', 'on', 'your', 'as', 'has',
+    'what', 'is', 'nor', 'i'
+]
 
 $(document).ready(function() {
     $("#limerick").click(function() {
@@ -65,9 +71,7 @@ function createPoem(poemType) {
     linesInCurrentStanza = 0;
     type = poemType;
 
-    generateRhymeScheme(type);
-    generateSyllableScheme(type);
-    generateStanzaScheme(type);
+    generateScheme(type);
     generateLines();
 }
 
@@ -81,71 +85,37 @@ function generateTheme() {
 }
 
 /**
- * Generate the rhyme scheme of the poem
+ * Generate the scheme of the poem
  *
  * @param type type of poem
  */
-function generateRhymeScheme(type) {
+function generateScheme(type) {
     switch (type) {
         case 0: // free form
             break;
         case 1: //limerick
             rhymeScheme = [ 0, 0, 1, 1, 0 ];
+
+            first = Math.floor(Math.random() * 3) + 7;
+            second = Math.floor(Math.random() * 2) + 5;
+            syllableScheme = [ first, first, second, second, first ];
+
+            stanzaScheme = [];
             break;
         case 2: //haiku
             rhymeScheme = [ 0, 1, 2 ];
+
+            syllableScheme = [ 5, 7, 5 ];
+
+            stanzaScheme = [];
             break;
         case 3: //Sonnet
             rhymeScheme = [ 0, 1, 0, 1, 2, 3, 2, 3, 4, 5, 4, 5, 6, 6 ];
-            break;
-        default:
-            break;
-    }
-}
 
-/**
- * Generate the syllable scheme of the poem
- *
- * @param type type of poem
- */
-function generateSyllableScheme(type) {
-    switch (type) {
-        case 0:
-            break;
-        case 1:
-            first = Math.floor(Math.random() * 3) + 7;
-            second = Math.floor(Math.random() * 2) + 5;
-
-            syllableScheme = [ first, first, second, second, first ];
-            break;
-        case 2:
-            syllableScheme = [ 5, 7, 5 ];
-            break;
-        case 3:
             syllableScheme = [ 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 ];
-            break;
-        default:
-            break;
-    }
-}
 
-/**
- * Generate the stanza scheme of the poem
- *
- * @param type type of poem
- */
-function generateStanzaScheme(type) {
-    switch (type) {
-        case 0:
-            break;
-        case 1:
-            stanzaScheme = [];
-            break;
-        case 2:
-            stanzaScheme = [];
-            break;
-        case 3:
             stanzaScheme = [ 4, 4, 4 ];
+            break;
         default:
             break;
     }
@@ -179,7 +149,9 @@ function generateWords() {
             console.log("word: https://api.datamuse.com/words?topis=" + theme + "&lc=" + previousWord);
             $.getJSON("https://api.datamuse.com/words?topis=" + theme + "&lc=" + previousWord, function (data) {
                 syllablesLeft = syllableScheme[line] - syllablesOnLine;
-
+                /*$.getJSON("http://rhymebrain.com/talk?function=getWordInfo&word=ye", function (data) {
+                    console.log(JSON.stringify(data));
+                });*/
                 // Indexes of words to be included in random selection
                 var rouletteWordIndexes = [];
                 for (var i = 0; i < data.length; i++) {
@@ -192,6 +164,7 @@ function generateWords() {
                         }
                     }
                 }
+
 
                 if (rouletteWordIndexes.length != 0) {
                     var index = rouletteWordIndexes[Math.floor(Math.random() * rouletteWordIndexes.length)];
@@ -293,6 +266,14 @@ function legalLastWord(word) {
         if (usedRhymeWords[i] == word) return false;
     }
 
+    for (var i = 0; i < errorBlackList.length; i++) {
+        if (errorBlackList[i] == word) return false;
+    }
+
+    for (var i = 0; i < endWordBlackList.length; i++) {
+        if (endWordBlackList[i] == word) return false;
+    }
+
     return true;
 }
 
@@ -304,7 +285,7 @@ function legalLastWord(word) {
  */
 function checkBlacklist(word) {
     for (var i = 0; i < blacklist.length; i++) {
-        if (blacklist[i] == word || errorBlackList[i] == word) return false;
+        if (blacklist[i] == word) return false;
     }
 
     return true;
@@ -363,6 +344,7 @@ function addLastWord(data, rouletteWordIndexes) {
     var syllables = syllableCount(previousWord);
 
     previousWord = data[index].word;
+    usedRhymeWords.push(previousWord);
     currentLine += " " + previousWord;
     syllablesOnLine += syllableCount(previousWord);
     console.log("word: '" + previousWord + "' index: " + index + " syllables: " + syllables);
