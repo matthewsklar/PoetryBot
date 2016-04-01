@@ -42,6 +42,9 @@ var endWordBlackList = [
 ]
 
 $(document).ready(function() {
+    $("#freeverse").click(function() {
+       createPoem(0);
+    });
     $("#limerick").click(function() {
         createPoem(1);
     });
@@ -92,6 +95,16 @@ function generateTheme() {
 function generateScheme(type) {
     switch (type) {
         case 0: // free form
+            var lineCount = Math.floor(Math.random() * 14) + 1;
+
+            for (var i = 0; i < lineCount; i++) {
+                rhymeScheme.push(rhymeScheme.length);
+
+                syllableScheme.push(Math.floor(Math.random() * 4) + 6);
+
+                stanzaScheme = []; // TODO: Possibly change
+            }
+
             break;
         case 1: //limerick
             rhymeScheme = [ 0, 0, 1, 1, 0 ];
