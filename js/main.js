@@ -363,6 +363,7 @@ function addLastWord(data, rouletteWordIndexes) {
     var syllables = syllableCount(previousWord);
 
     previousWord = data[index].word;
+    usedRhymeWords.push(previousWord);
     currentLine += " " + previousWord;
     syllablesOnLine += syllableCount(previousWord);
     console.log("word: '" + previousWord + "' index: " + index + " syllables: " + syllables);
