@@ -171,8 +171,8 @@ function generateLines() {
 function generateWords() {
     if (line < rhymeScheme.length) {
         if (syllableScheme[line] - syllablesOnLine > 3) {
-            console.log("word: https://api.datamuse.com/words?topis=" + theme + "&lc=" + previousWord);
-            $.getJSON("https://api.datamuse.com/words?topis=" + theme + "&lc=" + previousWord, function (data) {
+            console.log("word: https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
+            $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
                 syllablesLeft = syllableScheme[line] - syllablesOnLine;
                 /*$.getJSON("http://rhymebrain.com/talk?function=getWordInfo&word=ye", function (data) {
                     console.log(JSON.stringify(data));
@@ -218,8 +218,8 @@ function generateWords() {
             });
         } else {
             if (rhymes.length > rhymeScheme[line]) {
-                console.log("line: " + line + " https://api.datamuse.com/words?topis=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]]);
-                $.getJSON("https://api.datamuse.com/words?topis=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]], function (data) {
+                console.log("line: " + line + " https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]]);
+                $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]], function (data) {
                     // Indexes of words to be included in random selection
                     var rouletteWordIndexes = endWordRouletteSelection(data);
 
@@ -242,8 +242,8 @@ function generateWords() {
                     handleLastWordResults();
                 });
             } else {
-                console.log("line: " + line + " https://api.datamuse.com/words?topis=" + theme + "&lc=" + previousWord);
-                $.getJSON("https://api.datamuse.com/words?topis=" + theme + "&lc=" + previousWord, function (data) {
+                console.log("line: " + line + " https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
+                $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
                     // Indexes of words to be included in random selection
                     var rouletteWordIndexes = endWordRouletteSelection(data);
 
