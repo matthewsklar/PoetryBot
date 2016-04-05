@@ -23,7 +23,7 @@ var linesInCurrentStanza = 0;
 
 var usedRhymeWords = [];
 
-var themes = [
+var topics = [
     "death", "ocean", "sea", "science", "unknown", "sloth", "love",
     "family", "life", "hope", "nature", "tree", "god", "sex", "kumbaya"
 ];
@@ -42,6 +42,17 @@ var endWordBlackList = [
 ]
 
 $(document).ready(function() {
+    showTopics();
+
+    var contents = $("#poemTopics").html();
+    $("#poemTopics").blur(function() {
+       if (contents != $(this).html()) {
+           console.log("Topics updated");
+           updateTopics(document.getElementById("poemTopics").innerHTML);
+           contents = $(this).html();
+       }
+    });
+
     $("#freeverse").click(function() {
        createPoem(0);
     });
@@ -58,6 +69,22 @@ $(document).ready(function() {
         generate();
     })
 });
+
+/**
+ * Show the current topics
+ */
+function showTopics() {
+    document.getElementById("poemTopics").innerHTML = topics;
+}
+
+/**
+ * Update the topics if the user changes them
+ *
+ * @param topic new topic text
+ */
+function updateTopics(topic) {
+    topics = topic.split(",");
+}
 
 function generate() {
     document.getElementById("poem").innerHTML = "To move, to breathe, to fly, to float,</br>To gain all while you give,</br>To roam the roads of lands remote,</br>To travel is to live."
@@ -91,9 +118,9 @@ function createPoem(poemType) {
  * Generate the theme of the poem
  */
 function generateTheme() {
-    var random = Math.floor(Math.random() * themes.length);
-    console.log(themes[random]);
-    return themes[random];
+    var random = Math.floor(Math.random() * topics.length);
+    console.log(topics[random]);
+    return topics[random];
 }
 
 /**

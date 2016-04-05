@@ -1,19 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <link rel="stylesheet" type="text/css" href="css/main.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-    <script src="js/main.js"></script>
+    <head>
+        <link rel="stylesheet" type="text/css" href="css/main.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+        <script src="js/main.js"></script>
 
-    <meta charset="UTF-8">
-    <title>Poetry Bot</title>
-</head>
-<body>
-    <button id="limerick">Limerick</button>
-    <button id="haiku">Haiku</button>
-    <button id="sonnet">Sonnet</button>
-    <button id="freeverse">Free Verse</button>
-    <button id="testalgorithm">Test Algorithm</button>
-    <p id="poem"></p>
-</body>
+        <meta charset="UTF-8">
+        <title>Poetry Bot</title>
+    </head>
+    <body>
+        <div id="page">
+            <div id="header">
+                <div id="title"><h1>Poetry Bot</h1></div>
+            </div>
+            <div id="body">
+                <div id="poemParamters">
+                    <p>Topics: <span id="poemTopics" contenteditable="true"></span></p>
+                </div>
+                <div id="generatePoem">
+                    <button id="limerick" class="poemButton">Limerick</button>
+                    <button id="haiku" class="poemButton">Haiku</button>
+                    <button id="sonnet" class="poemButton">Sonnet</button>
+                    <button id="freeverse" class="poemButton">Free Verse</button>
+                    <button id="testalgorithm" class="poemButton">Test Algorithm</button>
+                </div>
+                <div id="poemOutput"><p id="poem"></p></div>
+            </div>
+        </div>
+    </body>
 </html>
