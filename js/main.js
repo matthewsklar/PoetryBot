@@ -48,7 +48,7 @@ $(document).ready(function() {
     $("#poemTopics").blur(function() {
        if (contents != $(this).html()) {
            console.log("Topics updated");
-           updateTopics(document.getElementById("poemTopics").innerHTML);
+           updateTopics($("#poemTopics").html());
            contents = $(this).html();
        }
     });
@@ -87,7 +87,7 @@ function updateTopics(topic) {
 }
 
 function generate() {
-    document.getElementById("poem").innerHTML = "To move, to breathe, to fly, to float,</br>To gain all while you give,</br>To roam the roads of lands remote,</br>To travel is to live."
+    $("#poem").html("To move, to breathe, to fly, to float,</br>To gain all while you give,</br>To roam the roads of lands remote,</br>To travel is to live.");
 }
 
 /**
@@ -108,7 +108,7 @@ function createPoem(poemType) {
     linesInCurrentStanza = 0;
     type = poemType;
 
-    document.getElementById("poem").innerHTML = "Amazing loading icon ---> O <--- noci gnidaol gnizamA";
+    $("#poem").html("Amazing loading icon ---> O <--- noci gnidaol gnizamA");
 
     generateScheme(type);
     generateLines();
