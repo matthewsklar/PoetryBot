@@ -20,8 +20,12 @@ var startingWord = "";
 var type = 1;
 var currentStanza = 0;
 var linesInCurrentStanza = 0;
+var revertLine = 0;
+var reverts = 0;
 
 var usedRhymeWords = [];
+
+var poem = [];
 
 var topics = [
     "death", "ocean", "sea", "science", "unknown", "sloth", "love",
@@ -107,6 +111,9 @@ function createPoem(poemType) {
     currentStanza = 0;
     linesInCurrentStanza = 0;
     type = poemType;
+    poem = [];
+    revertLine = 0;
+    reverts = 0;
 
     $("#poem").html("Amazing loading icon ---> O <--- noci gnidaol gnizamA");
 
@@ -359,7 +366,44 @@ function checkSpaces(word) {
 function restartPoem() {
     console.log("--------------------Restart Poem--------------------");
 
-    createPoem(type);
+    if (stanzaScheme.length == 0) createPoem(type);
+    else {
+        if (revertLine == 0) createPoem(type);
+        else revertToLine(revertLine);
+    }
+}
+
+/**
+ * Revert the poem to a previous line
+ *
+ * @param rLine {Integer} The line to revert the poem to
+ */
+function revertToLine(rLine) {
+    console.log(poem);
+    console.log("Poem reverted to line " + rLine);
+
+    if (poem[rLine] == null) createPoem(type);
+    reverts++;
+    if (reverts >= 5) createPoem(type);
+    var n = poem[rLine].split(" ");
+    previousWord = n[n.length - 1].split("</br>")[0];
+    console.log("sdfjfshfsh: " + previousWord);
+
+    poem.splice(rLine);
+
+    var revertStanza = 0;
+    var tempLine = rLine;
+    while (tempLine > 0) {
+        tempLine -= stanzaScheme[revertStanza];
+        revertStanza++;
+    }
+    currentStanza = revertStanza;
+    linesInCurrentStanza = tempLine;
+    syllablesOnLine = 0;
+
+    line = rLine;
+    console.log(poem);
+    generateWords();
 }
 
 /**
@@ -402,12 +446,16 @@ function addLastWord(data, rouletteWordIndexes) {
     console.log("word: '" + previousWord + "' index: " + index + " syllables: " + syllables);
     console.log("line " + line + " syllables: " + syllablesOnLine);
     output += currentLine.charAt(1).toUpperCase() + currentLine.slice(2) + "</br>";
+    poem[line] = currentLine.charAt(1).toUpperCase() + currentLine.slice(2) + "</br>";
     attempts = 0;
-
+    console.log(poem);
     if (stanzaScheme[currentStanza] != null) {
         if (stanzaScheme[currentStanza] - 1 == linesInCurrentStanza) {
             linesInCurrentStanza = 0;
             output += "</br>";
+            poem[poem.length - 1] += "</br>";
+            revertLine = line;
+            reverts = 0;
             console.log("new stanza");
         } else {
             linesInCurrentStanza++;
@@ -422,7 +470,7 @@ function addLastWord(data, rouletteWordIndexes) {
 function handleLastWordResults() {
     console.log("line " + line + ": " + currentLine);
 
-    if (line == rhymeScheme.length - 1) document.getElementById("poem").innerHTML = output;
+    $("#poem").html(poem);
 
     currentLine = "";
     syllablesOnLine = 0;
