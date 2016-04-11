@@ -2,8 +2,6 @@
  * Created by Matthew Sklar on 3/14/2016.
  */
 
-var REQUEST = "";
-
 var theme = "";
 var rhymeScheme = [];
 var syllableScheme = [];
@@ -22,8 +20,12 @@ var startingWord = "";
 var type = 1;
 var currentStanza = 0;
 var linesInCurrentStanza = 0;
+var revertLine = 0;
+var reverts = 0;
 
 var usedRhymeWords = [];
+
+var poem = [];
 
 var topics = [
     "death", "ocean", "sea", "science", "unknown", "sloth", "love",
@@ -50,7 +52,7 @@ $(document).ready(function() {
     $("#poemTopics").blur(function() {
        if (contents != $(this).html()) {
            console.log("Topics updated");
-           updateTopics(document.getElementById("poemTopics").innerHTML);
+           updateTopics($("#poemTopics").html());
            contents = $(this).html();
        }
     });
@@ -66,6 +68,9 @@ $(document).ready(function() {
     });
     $("#sonnet").click(function () {
         createPoem(3);
+    })
+    $("#testalgorithm").click(function () {
+        generate();
     })
 });
 
@@ -85,6 +90,10 @@ function updateTopics(topic) {
     topics = topic.split(",");
 }
 
+function generate() {
+    $("#poem").html("To move, to breathe, to fly, to float,</br>To gain all while you give,</br>To roam the roads of lands remote,</br>To travel is to live.");
+}
+
 /**
  * Manage the creation of a poem
  *
@@ -102,8 +111,11 @@ function createPoem(poemType) {
     currentStanza = 0;
     linesInCurrentStanza = 0;
     type = poemType;
+    poem = [];
+    revertLine = 0;
+    reverts = 0;
 
-    document.getElementById("poem").innerHTML = "Amazing loading icon ---> O <--- noci gnidaol gnizamA";
+    $("#poem").html("Amazing loading icon ---> O <--- noci gnidaol gnizamA");
 
     generateScheme(type);
     generateLines();
@@ -174,9 +186,7 @@ function generateScheme(type) {
 function generateLines() {
     console.log("--------------------Generate Poem--------------------");
 
-    REQUEST = "http://api.wordnik.com:80/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=3&maxLength=15&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5";
-    console.log("REQUEST: " + REQUEST);
-    $.getJSON(REQUEST, function(data) {
+    $.getJSON("http://api.wordnik.com:80/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=3&maxLength=15&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5", function(data) {
         previousWord = data[0].word;
         console.log("Starting word: " + previousWord);
         currentLine += " " + previousWord;
@@ -195,11 +205,12 @@ function generateLines() {
 function generateWords() {
     if (line < rhymeScheme.length) {
         if (syllableScheme[line] - syllablesOnLine > 3) {
-            REQUEST = "https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord;
-            console.log("REQUEST: " + REQUEST);
-            $.getJSON(REQUEST, function (data) {
+            console.log("word: https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
+            $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
                 syllablesLeft = syllableScheme[line] - syllablesOnLine;
-
+                /*$.getJSON("http://rhymebrain.com/talk?function=getWordInfo&word=ye", function (data) {
+                    console.log(JSON.stringify(data));
+                });*/
                 // Indexes of words to be included in random selection
                 var rouletteWordIndexes = [];
                 for (var i = 0; i < data.length; i++) {
@@ -241,9 +252,8 @@ function generateWords() {
             });
         } else {
             if (rhymes.length > rhymeScheme[line]) {
-                REQUEST = "https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]];
-                console.log("REQUEST: " + REQUEST);
-                $.getJSON(REQUEST, function (data) {
+                console.log("line: " + line + " https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]]);
+                $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]], function (data) {
                     // Indexes of words to be included in random selection
                     var rouletteWordIndexes = endWordRouletteSelection(data);
 
@@ -266,9 +276,8 @@ function generateWords() {
                     handleLastWordResults();
                 });
             } else {
-                REQUEST = "https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord;
-                console.log("REQUEST: " + REQUEST);
-                $.getJSON(REQUEST, function (data) {
+                console.log("line: " + line + " https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
+                $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
                     // Indexes of words to be included in random selection
                     var rouletteWordIndexes = endWordRouletteSelection(data);
 
@@ -357,7 +366,44 @@ function checkSpaces(word) {
 function restartPoem() {
     console.log("--------------------Restart Poem--------------------");
 
-    createPoem(type);
+    if (stanzaScheme.length == 0) createPoem(type);
+    else {
+        if (revertLine == 0) createPoem(type);
+        else revertToLine(revertLine);
+    }
+}
+
+/**
+ * Revert the poem to a previous line
+ *
+ * @param rLine {Integer} The line to revert the poem to
+ */
+function revertToLine(rLine) {
+    console.log(poem);
+    console.log("Poem reverted to line " + rLine);
+
+    if (poem[rLine] == null) createPoem(type);
+    reverts++;
+    if (reverts >= 5) createPoem(type);
+    var n = poem[rLine].split(" ");
+    previousWord = n[n.length - 1].split("</br>")[0];
+    console.log("sdfjfshfsh: " + previousWord);
+
+    poem.splice(rLine);
+
+    var revertStanza = 0;
+    var tempLine = rLine;
+    while (tempLine > 0) {
+        tempLine -= stanzaScheme[revertStanza];
+        revertStanza++;
+    }
+    currentStanza = revertStanza;
+    linesInCurrentStanza = tempLine;
+    syllablesOnLine = 0;
+
+    line = rLine;
+    console.log(poem);
+    generateWords();
 }
 
 /**
@@ -400,12 +446,16 @@ function addLastWord(data, rouletteWordIndexes) {
     console.log("word: '" + previousWord + "' index: " + index + " syllables: " + syllables);
     console.log("line " + line + " syllables: " + syllablesOnLine);
     output += currentLine.charAt(1).toUpperCase() + currentLine.slice(2) + "</br>";
+    poem[line] = currentLine.charAt(1).toUpperCase() + currentLine.slice(2) + "</br>";
     attempts = 0;
-
+    console.log(poem);
     if (stanzaScheme[currentStanza] != null) {
         if (stanzaScheme[currentStanza] - 1 == linesInCurrentStanza) {
             linesInCurrentStanza = 0;
             output += "</br>";
+            poem[poem.length - 1] += "</br>";
+            revertLine = line;
+            reverts = 0;
             console.log("new stanza");
         } else {
             linesInCurrentStanza++;
@@ -420,37 +470,13 @@ function addLastWord(data, rouletteWordIndexes) {
 function handleLastWordResults() {
     console.log("line " + line + ": " + currentLine);
 
-    if (line == rhymeScheme.length - 1) document.getElementById("poem").innerHTML = output;
+    $("#poem").html(poem);
 
     currentLine = "";
     syllablesOnLine = 0;
     line++;
 
     generateWords();
-}
-
-function regenerateStartingWord(secondWord) {
-    REQUEST = "https://api.datamuse.com/words?topics=" + theme + "&rc=" + secondWord;
-    console.log("REQUEST: " + REQUEST);
-    $.getJSON(REQUEST, function (data) {
-        var rouletteWordIndexes = [];
-        for (var i = 0; i < data.length; i++) {
-            if (rouletteWordIndexes.length < wordsPerRoulette) {
-                var word = data[i].word;
-                var syllables = syllableCount(word);
-
-                if (syllables != -1 && syllables < syllableCount(secondWord) && legalWord(word)) {
-                    rouletteWordIndexes[rouletteWordIndexes.length] = i;
-                }
-            }
-        }
-
-        if (rouletteWordIndexes.length != 0) {
-            var index = rouletteWordIndexes[Math.floor(Math.random() * rouletteWordIndexes.length)];
-
-            startingWord = data[index].word;
-        }
-    });
 }
 
 // TODO: Fix

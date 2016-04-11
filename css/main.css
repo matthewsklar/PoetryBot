@@ -30,6 +30,9 @@
     vertical-align: middle;
 }
 
+#testalgorithm {
+    padding: 40px 80px;
+}
 .poemButton:hover {
     border-top-color: #28597a;
     background: #28597a;
