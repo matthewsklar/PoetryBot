@@ -2,6 +2,8 @@
  * Created by Matthew Sklar on 3/14/2016.
  */
 
+var REQUEST = "";
+
 var theme = "";
 var rhymeScheme = [];
 var syllableScheme = [];
@@ -28,8 +30,7 @@ var usedRhymeWords = [];
 var poem = [];
 
 var topics = [
-    "death", "ocean", "sea", "science", "unknown", "sloth", "love",
-    "family", "life", "hope", "nature", "tree", "god", "sex", "kumbaya"
+    "death", "sea", "science", "love", "family", "life", "hope", "nature", "god"
 ];
 var blacklist = [
     "ca", ".", "le", "pshaw", "duh", "dah", "pizzazz", "wussy", "speechify", "verklempt", "niner",
@@ -43,7 +44,7 @@ var endWordBlackList = [
     'too', 'not', 'and', 'but', 'or', 'than', 'then', 'no', 'o',
     'for', 'so', 'which', 'their', 'on', 'your', 'as', 'has',
     'what', 'is', 'nor', 'i'
-]
+];
 
 $(document).ready(function() {
     showTopics();
@@ -68,10 +69,7 @@ $(document).ready(function() {
     });
     $("#sonnet").click(function () {
         createPoem(3);
-    })
-    $("#testalgorithm").click(function () {
-        generate();
-    })
+    });
 });
 
 /**
@@ -88,10 +86,6 @@ function showTopics() {
  */
 function updateTopics(topic) {
     topics = topic.split(",");
-}
-
-function generate() {
-    $("#poem").html("To move, to breathe, to fly, to float,</br>To gain all while you give,</br>To roam the roads of lands remote,</br>To travel is to live.");
 }
 
 /**
@@ -186,7 +180,9 @@ function generateScheme(type) {
 function generateLines() {
     console.log("--------------------Generate Poem--------------------");
 
-    $.getJSON("http://api.wordnik.com:80/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=3&maxLength=15&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5", function(data) {
+    REQUEST = "http://api.wordnik.com:80/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=3&maxLength=15&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5";
+    console.log("REQUEST: " + REQUEST);
+    $.getJSON(REQUEST, function(data) {
         previousWord = data[0].word;
         console.log("Starting word: " + previousWord);
         currentLine += " " + previousWord;
@@ -205,12 +201,11 @@ function generateLines() {
 function generateWords() {
     if (line < rhymeScheme.length) {
         if (syllableScheme[line] - syllablesOnLine > 3) {
-            console.log("word: https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
-            $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
+            REQUEST = "https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord;
+            console.log("REQUEST: " + REQUEST);
+            $.getJSON(REQUEST, function (data) {
                 syllablesLeft = syllableScheme[line] - syllablesOnLine;
-                /*$.getJSON("http://rhymebrain.com/talk?function=getWordInfo&word=ye", function (data) {
-                    console.log(JSON.stringify(data));
-                });*/
+
                 // Indexes of words to be included in random selection
                 var rouletteWordIndexes = [];
                 for (var i = 0; i < data.length; i++) {
@@ -252,8 +247,9 @@ function generateWords() {
             });
         } else {
             if (rhymes.length > rhymeScheme[line]) {
-                console.log("line: " + line + " https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]]);
-                $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]], function (data) {
+                REQUEST = "https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord + "&rel_rhy=" + rhymes[rhymeScheme[line]];
+                console.log("REQUEST: " + REQUEST);
+                $.getJSON(REQUEST, function (data) {
                     // Indexes of words to be included in random selection
                     var rouletteWordIndexes = endWordRouletteSelection(data);
 
@@ -276,8 +272,9 @@ function generateWords() {
                     handleLastWordResults();
                 });
             } else {
-                console.log("line: " + line + " https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord);
-                $.getJSON("https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord, function (data) {
+                REQUEST = "https://api.datamuse.com/words?topics=" + theme + "&lc=" + previousWord;
+                console.log("REQUEST: " + REQUEST);
+                $.getJSON(REQUEST, function (data) {
                     // Indexes of words to be included in random selection
                     var rouletteWordIndexes = endWordRouletteSelection(data);
 
@@ -293,7 +290,7 @@ function generateWords() {
                         attempts++;
                         if (attempts >= attemptsBeforeRestart) {
                             restartPoem();
-                            return;
+
                         }
                     }
 
@@ -470,6 +467,13 @@ function addLastWord(data, rouletteWordIndexes) {
 function handleLastWordResults() {
     console.log("line " + line + ": " + currentLine);
 
+    if (line == rhymeScheme.length - 1) {
+        var words = poem[0].split(" ");
+        var secondWord = words[1];
+
+        regenerateStartingWord(words[1]);
+    }
+
     $("#poem").html(poem);
 
     currentLine = "";
@@ -477,6 +481,44 @@ function handleLastWordResults() {
     line++;
 
     generateWords();
+}
+
+/**
+ * Replace the first word with a better
+ * word with the context of the second word
+ *
+ * @param secondWord The second word of the poem
+ */
+function regenerateStartingWord(secondWord) {
+    REQUEST = "https://api.datamuse.com/words?topics=" + theme + "&rc=" + secondWord;
+    console.log("REQUEST: " + REQUEST);
+    $.getJSON(REQUEST, function (data) {
+        var rouletteWordIndexes = [];
+        for (var i = 0; i < data.length; i++) {
+            if (rouletteWordIndexes.length < wordsPerRoulette) {
+                var word = data[i].word;
+                var syllables = syllableCount(word);
+
+                if (syllables != -1 && syllables == syllableCount(startingWord) && legalWord(word)) {
+                    rouletteWordIndexes[rouletteWordIndexes.length] = i;
+                }
+            }
+        }
+
+        if (rouletteWordIndexes.length != 0) {
+            var index = rouletteWordIndexes[Math.floor(Math.random() * rouletteWordIndexes.length)];
+
+            var newStartingWord = data[index].word;
+            newStartingWord = newStartingWord.charAt(0).toUpperCase() + newStartingWord.slice(1);
+
+            var words = poem[0].split(" ");
+            poem[0] = poem[0].substring(words[0].length, poem[0].length);
+            poem[0] = newStartingWord + poem[0];
+            startingWord = newStartingWord;
+        }
+
+        $("#poem").html(poem);
+    });
 }
 
 // TODO: Fix
@@ -498,4 +540,4 @@ function syllableCount(word) {
     if (word != null) return word.length;
 
     return -1;
-}
+};
